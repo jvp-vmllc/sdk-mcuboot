@@ -27,6 +27,8 @@
 #include <soc.h>
 #include <zephyr/linker/linker-defs.h>
 
+#define CONFIG_FIH_PANIC_BYPASS 1
+
 #if defined(CONFIG_ARM)
 #include <cmsis_core.h>
 #endif
@@ -705,7 +707,14 @@ int main(void)
         boot_serial_enter();
 #endif
 
+        #if defined(CONFIG_FIH_PANIC_BYPASS)
+        // do not loop forever
+        BOOT_LOG_WRN("FIH panic bypassed: %d", __LINE__);
+        #warning "FIH_PANIC_BYPASS is defined"
+        #else
         FIH_PANIC;
+        #warning "FIH_PANIC_BYPASS is NOT defined"
+        #endif
     }
 
     BOOT_LOG_INF("Bootloader chainload address offset: 0x%x",

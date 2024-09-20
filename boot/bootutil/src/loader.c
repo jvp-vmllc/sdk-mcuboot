@@ -49,6 +49,8 @@
 #include "bootutil/boot_hooks.h"
 #include "bootutil/mcuboot_status.h"
 
+#define CONFIG_FIH_PANIC_BYPASS 1
+
 #if defined(CONFIG_SOC_NRF5340_CPUAPP) && defined(PM_CPUNET_B0N_ADDRESS)
 #include <dfu/pcd.h>
 #ifdef CONFIG_PCD_READ_NETCORE_APP_VERSION
@@ -2321,7 +2323,15 @@ context_boot_go(struct boot_loader_state *state, struct boot_rsp *rsp)
             if (rc != 0) {
                 BOOT_LOG_ERR("Failed to open flash area ID %d (image %d slot %d): %d, "
                              "cannot continue", fa_id, image_index, (int8_t)slot, rc);
+                
+                #if defined(CONFIG_FIH_PANIC_BYPASS)
+                // do not loop forever
+                BOOT_LOG_WRN("FIH panic bypassed: %d", __LINE__);
+                #warning "FIH_PANIC_BYPASS is defined"
+                #else
                 FIH_PANIC;
+                #warning "FIH_PANIC_BYPASS is NOT defined"
+                #endif
             }
         }
 #if MCUBOOT_SWAP_USING_SCRATCH
